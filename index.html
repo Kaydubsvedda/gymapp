@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="sv"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gymapp"><meta name="theme-color" content="#0b0b0c">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon.svg">
+<title>Min Gymapp</title>
+<style>
+:root{--bg:#0b0b0c;--c:#18181b;--c2:#26262b;--o:#ff6a00;--t:#f4f4f5;--m:#8b8b94}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t);font:16px -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom));touch-action:manipulation}
+main{padding:16px;max-width:600px;margin:auto}
+h1{font-size:28px;margin:8px 0 14px;letter-spacing:-.5px}h2{font-size:17px;margin:20px 0 8px}
+.card{background:var(--c);border-radius:16px;padding:14px;margin-bottom:12px}.card .card{background:var(--c2)}
+.row{display:flex;gap:8px;align-items:center}.sp{justify-content:space-between}
+button,select,input,textarea{font:inherit;color:var(--t);background:var(--c2);border:0;border-radius:12px;padding:12px}
+button{background:var(--o);color:#000;font-weight:700}button.g{background:var(--c2);color:var(--t)}button.x{background:none;color:#ff5b5b;padding:6px 10px;font-weight:600}
+input{width:100%;min-width:0}.sm{font-size:13px;color:var(--m)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#111e;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding-bottom:env(safe-area-inset-bottom);border-top:1px solid #2a2a2e}
+nav a{flex:1;text-align:center;padding:8px 0;font-size:10px;color:var(--m)}nav a b{display:block;font-size:20px}nav a.on{color:var(--o)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.big{font-size:30px;font-weight:800;color:var(--o)}
+.chip{display:inline-block;padding:8px 14px;border-radius:20px;background:var(--c2);margin:0 6px 8px 0;font-size:14px}.chip.on{background:var(--o);color:#000;font-weight:700}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.cal div{padding:10px 0;border-radius:10px;font-size:14px}.cal .d{background:var(--c)}.cal .w{background:var(--o);color:#000;font-weight:700}.cal .s{outline:2px solid #fff}
+.set{display:grid;grid-template-columns:20px 1fr 1fr 44px 34px;gap:6px;margin:6px 0;align-items:center}.set button{padding:10px 0}.set input{text-align:center}.done input{background:#4a2a10}
+ol{padding-left:20px;margin:8px 0}summary{cursor:pointer}
+</style></head><body><main></main>
+<nav><a data-v=home><b>🏠</b>Hem</a><a data-v=prog><b>📋</b>Program</a><a data-v=train><b>🏋️</b>Träna</a><a data-v=exs><b>📖</b>Övningar</a><a data-v=hist><b>📅</b>Historik</a><a data-v=stats><b>📈</b>Statistik</a></nav>
+<script>
+const K='gymapp1',G=['Bröst','Rygg','Ben','Axlar','Armar','Mage'],IC={Bröst:'🏋️',Rygg:'🧗',Ben:'🦵',Axlar:'🙌',Armar:'💪',Mage:'🎯'};
+const $=s=>document.querySelector(s),z=n=>(n+'').padStart(2,'0'),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const q=s=>(s+'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+let db=JSON.parse(localStorage.getItem(K)||'null')||{p:[],x:[],l:[],a:null};
+const save=()=>localStorage.setItem(K,JSON.stringify(db));
+const LIB=`Bänkpress|Bröst|Bröst, triceps, främre axel|Ligg på bänken med fötterna i golvet;Sänk stången kontrollerat till bröstet;Pressa upp tills armarna är sträckta
+Hantelpress (lutande)|Bröst|Övre bröst, axlar, triceps|Ställ bänken i 30° lutning;Sänk hantlarna till brösthöjd;Pressa upp och för ihop lätt
+Hantelflyes|Bröst|Bröst|Ligg med hantlar över bröstet;Sänk armarna ut i en båge med lätt böjda armbågar;För tillbaka upp i samma båge
+Dips|Bröst|Nedre bröst, triceps|Stöd på barrerna med raka armar;Sänk dig tills överarmarna är parallella med golvet;Pressa upp
+Kabelflyes|Bröst|Bröst|Ställ kablarna i brösthöjd;Dra handtagen samman framför bröstet;Återgå långsamt
+Marklyft|Rygg|Ryggslut, rumpa, baksida lår|Stå med stången över mitten av foten;Greppa, spänn bålen och håll ryggen rak;Pressa golvet ifrån dig och res dig;Sänk kontrollerat
+Chins|Rygg|Latissimus, biceps|Ta ett grepp lite bredare än axlarna;Dra dig upp tills hakan passerar stången;Sänk dig kontrollerat
+Skivstångsrodd|Rygg|Övre rygg, lats, biceps|Böj dig framåt med rak rygg;Dra stången mot nedre magen;Sänk kontrollerat
+Hantelrodd|Rygg|Lats, övre rygg|Stötta ena handen och knät på bänken;Dra hanteln mot höften;Sänk kontrollerat
+Latsdrag|Rygg|Latissimus, biceps|Sitt med låren under stödet;Dra stången till övre bröstet;För tillbaka långsamt
+Sittande kabelrodd|Rygg|Mellanrygg, lats|Sitt med lätt böjda knän;Dra handtaget mot magen och knip ihop skulderbladen;Släpp långsamt tillbaka
+Knäböj|Ben|Framsida lår, rumpa|Lägg stången på övre ryggen;Sätt dig tills låren är parallella med golvet;Pressa upp med knäna i linje med tårna
+Benpress|Ben|Framsida lår, rumpa|Sätt fötterna axelbrett på plattan;Sänk plattan tills knäna är ca 90°;Pressa ifrån utan att låsa knäna
+Raka marklyft (rumänska)|Ben|Baksida lår, rumpa|Håll stången framför låren;Skjut höften bakåt med nästan raka ben;Res dig genom att pressa fram höften
+Utfall|Ben|Lår, rumpa|Ta ett långt steg framåt;Sänk bakre knät mot golvet;Tryck upp och byt ben
+Benspark (maskin)|Ben|Framsida lår|Sitt med stödet över fotlederna;Sträck benen helt;Sänk kontrollerat
+Liggande bencurl|Ben|Baksida lår|Ligg på mage i maskinen;Böj knäna och dra hälarna mot rumpan;Sänk långsamt
+Vadpress|Ben|Vader|Stå på tårna på kanten;Pressa upp så högt du kan;Sänk hälarna under kanten
+Militärpress|Axlar|Axlar, triceps|Stå med stången vid axlarna;Pressa rakt upp över huvudet;Sänk kontrollerat
+Axelpress med hantlar|Axlar|Axlar, triceps|Sitt med hantlar vid axlarna;Pressa upp tills armarna nästan är sträckta;Sänk kontrollerat
+Sidolyft|Axlar|Mittre axel|Stå med hantlar vid sidorna;Lyft armarna ut till axelhöjd;Sänk långsamt
+Face pull|Axlar|Bakre axel, övre rygg|Ställ kabeln i ansiktshöjd med rep;Dra mot ansiktet med armbågarna högt;Släpp tillbaka kontrollerat
+Bicepscurl (hantel)|Armar|Biceps|Stå med armbågarna intill kroppen;Böj armarna upp mot axlarna;Sänk långsamt
+Hammarcurl|Armar|Biceps, underarmar|Håll hantlarna med tummarna uppåt;Böj upp mot axlarna;Sänk långsamt
+Tricepspress (kabel)|Armar|Triceps|Stå vid kabeln med armbågarna mot sidorna;Pressa ner tills armarna är raka;Släpp upp kontrollerat
+Franskpress|Armar|Triceps|Ligg på bänk med stången över pannan;Böj armbågarna och sänk stången mot pannan;Pressa upp
+Planka|Mage|Mage, bål|Stöd på underarmar och tår;Håll kroppen rak;Håll positionen
+Liggande benlyft|Mage|Nedre mage|Ligg på rygg med raka ben;Lyft benen till lodrätt;Sänk långsamt utan att nudda golvet
+Cable crunch|Mage|Raka bukmuskler|Sitt på knä vid kabeln med repet vid pannan;Runda ryggen och för armbågarna mot knäna;Rulla långsamt tillbaka`.split('\n').map((r,i)=>{const[n,g,m,s]=r.split('|');return{id:'b'+i,n,g,m,s:s.split(';')}});
+const TPL={'Push/Pull/Legs':{Push:'Bänkpress/Hantelpress (lutande)/Militärpress/Sidolyft/Tricepspress (kabel)',Pull:'Skivstångsrodd/Latsdrag/Sittande kabelrodd/Face pull/Bicepscurl (hantel)',Ben:'Knäböj/Raka marklyft (rumänska)/Benpress/Liggande bencurl/Vadpress'},'Upper/Lower':{Upper:'Bänkpress/Skivstångsrodd/Militärpress/Latsdrag/Bicepscurl (hantel)/Tricepspress (kabel)',Lower:'Knäböj/Raka marklyft (rumänska)/Benpress/Utfall/Vadpress/Planka'}};
+const all=()=>[...LIB,...db.x],E=id=>all().find(e=>e.id==id)||{n:'(borttagen övning)',g:'',m:'',s:[]},N=id=>q(E(id).n);
+const dk=d=>{d=new Date(d);return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())};
+const fd=d=>new Date(d).toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'});
+const sh=d=>{d=new Date(d);return d.getDate()+'/'+(d.getMonth()+1)};
+const vol=w=>w.e.reduce((a,e)=>a+e.s.reduce((b,s)=>b+(+s.kg||0)*(+s.r||0),0),0);
+const wk=d=>{d=new Date(d);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return +d};
+const sorted=()=>[...db.l].sort((a,b)=>b.date-a.date);
+const pb=x=>Math.max(0,...db.l.flatMap(l=>l.e.filter(e=>e.x==x).flatMap(e=>e.s.map(s=>+s.kg||0))));
+const last=(x,id)=>sorted().find(l=>l.id!=id&&l.e.some(e=>e.x==x));
+const prev=(x,id)=>{const l=last(x,id);return l?'Förra ('+fd(l.date)+'): '+l.e.find(e=>e.x==x).s.map(s=>s.kg+'×'+s.r).join(', '):''};
+const mk=x=>{const l=last(x);return{x,s:l?l.e.find(e=>e.x==x).s.map(s=>({kg:s.kg,r:s.r,d:0})):[{kg:'',r:'',d:0}]}};
+let v='home',ui={prog:null,grp:'Alla',cal:new Date(),sel:null,st:null,open:null},rt=0;
+const W_=p=>p=='A'?db.a:db.l.find(l=>l.id==p.slice(1)),cp=()=>db.p.find(p=>p.id==ui.prog);
+const D=(p,i,j)=>`data-p="${p}" data-i="${i}" data-j="${j}"`;
+const sel=id=>`<select id=${id} style=width:100%><option value="">Välj övning…</option>${G.map(g=>`<optgroup label="${g}">${all().filter(e=>e.g==g).map(e=>`<option value=${e.id}>${q(e.n)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+const sets=(p,w)=>w.e.map((e,i)=>`<div class=card><div class="row sp"><b>${N(e.x)}</b><button class=x data-a=rx ${D(p,i)}>Ta bort</button></div><div class=sm>${prev(e.x,w.id)}</div>${e.s.map((s,j)=>`<div class="set${s.d?' done':''}"><span class=sm>${j+1}</span><input type=number inputmode=decimal placeholder=kg value="${s.kg}" data-f=kg ${D(p,i,j)}><input type=number inputmode=numeric placeholder=reps value="${s.r}" data-f=r ${D(p,i,j)}>${p=='A'?`<button data-a=ok ${D(p,i,j)}>✓</button>`:'<span></span>'}<button class=x data-a=rs ${D(p,i,j)}>✕</button></div>`).join('')}<button class=g data-a=as ${D(p,i)}>+ Set</button></div>`).join('');
+const chart=(v,lab,bar)=>{const W=320,H=110,M=Math.max(...v,1),n=v.length,ys=y=>H-(y/M)*(H-14),xs=i=>n>1?12+i*(W-24)/(n-1):W/2;let s=`<svg viewBox="0 0 ${W} ${H+16}" style=width:100%><text x=0 y=9 fill=#8b8b94 font-size=9>${M}</text>`;
+if(bar){const bw=(W-8)/n;v.forEach((y,i)=>s+=`<rect x=${4+i*bw+3} y=${ys(y)} width=${bw-6} height=${H-ys(y)} rx=3 fill=#ff6a00 /><text x=${4+i*bw+bw/2} y=${H+12} fill=#8b8b94 font-size=9 text-anchor=middle>${lab[i]}</text>`)}
+else s+=`<polyline fill=none stroke=#ff6a00 stroke-width=2.5 points="${v.map((y,i)=>xs(i)+','+ys(y)).join(' ')}"/>`+v.map((y,i)=>`<circle cx=${xs(i)} cy=${ys(y)} r=3.5 fill=#ff6a00 />`).join('')+`<text x=0 y=${H+12} fill=#8b8b94 font-size=9>${lab[0]}</text><text x=${W} y=${H+12} fill=#8b8b94 font-size=9 text-anchor=end>${lab[n-1]}</text>`;
+return s+'</svg>'};
+const home=()=>{const n=Date.now(),ws=wk(n),R=(a,b)=>db.l.filter(l=>l.date>=a&&l.date<b),tw=R(ws,n+1),lw=R(ws-6048e5,ws),vt=tw.reduce((a,l)=>a+vol(l),0),vl=lw.reduce((a,l)=>a+vol(l),0),la=sorted()[0],top=[...new Set(db.l.flatMap(l=>l.e.map(e=>e.x)))].map(x=>[x,pb(x)]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+return `<h1>Hej! 💪</h1><button style=width:100% data-v=train>${db.a?'Fortsätt pågående pass':'Starta träning'}</button>
+<div class=grid style="margin-top:12px"><div class=card><div class=big>${tw.length}</div><div class=sm>pass denna vecka</div></div><div class=card><div class=big>${Math.round(vt)}</div><div class=sm>kg volym denna vecka</div></div></div>
+<div class=card><b>Utveckling</b><div class=sm>${vl?'Volym mot förra veckan: '+(vt>=vl?'+':'')+Math.round((vt-vl)/vl*100)+' %':'Logga pass två veckor i rad för att se din utveckling.'}</div></div>
+<h2>Senaste passet</h2>${la?`<div class=card><b>${q(la.name)}</b> <span class=sm>${fd(la.date)}</span><div class=sm>${la.e.map(e=>N(e.x)).join(', ')}</div><div>Volym: ${Math.round(vol(la))} kg</div></div>`:'<div class="card sm">Inga pass ännu. Starta ditt första!</div>'}
+<h2>Personliga rekord</h2>${top.map(([x,k])=>`<div class="card row sp"><span>${N(x)}</span><b style=color:var(--o)>${k} kg</b></div>`).join('')||'<div class="card sm">Inga rekord ännu.</div>'}
+<h2>Säkerhetskopia</h2><div class=row><button class=g data-a=exp style=flex:1>Exportera</button><button class=g data-a=imp style=flex:1>Importera</button></div><input type=file id=fi accept=.json hidden>`};
+const train=()=>{if(!db.a)return `<h1>Träna</h1>${db.p.map(p=>p.d.map(d=>`<div class="card row sp"><div><b>${q(d.n)}</b><div class=sm>${q(p.n)} · ${d.x.length} övningar</div></div><button data-a=start data-pi=${p.id} data-di=${d.id}>Starta</button></div>`).join('')).join('')||'<div class="card sm">Skapa ett program under Program för att starta därifrån.</div>'}<button class=g style=width:100% data-a=empty>Starta tomt pass</button>`;
+const a=db.a;return `<h1>${q(a.name)}</h1><div class="card row sp"><b id=tm>Vila: –</b><div class=row>${[60,90,120].map(n=>`<button class=g data-a=rest data-n=${n}>${n}s</button>`).join('')}</div></div>${sets('A',a)}<div class=card>${sel('xs')}<button style="width:100%;margin-top:8px" data-a=ax data-p=A>+ Lägg till övning</button></div><button style=width:100% data-a=fin>Avsluta och spara pass</button><button class=x style=width:100% data-a=cancel>Avbryt pass</button>`};
+const prog=()=>{const p=cp();if(!p)return `<h1>Program</h1>${db.p.map(p=>`<div class="card row sp" data-a=op data-id=${p.id}><div><b>${q(p.n)}</b><div class=sm>${p.d.length} dagar</div></div><span>›</span></div>`).join('')}<button style=width:100% data-a=np>+ Nytt program</button><h2>Mallar</h2>${Object.keys(TPL).map(k=>`<button class=g style="width:100%;margin-bottom:8px" data-a=tp data-k="${k}">Skapa ${k}</button>`).join('')}`;
+return `<button class=g data-a=bk>‹ Tillbaka</button><h1>${q(p.n)}</h1><div class=row><button class=g data-a=rp>Byt namn</button><button class=x data-a=dp>Ta bort program</button></div>${p.d.map(d=>`<div class=card style="margin-top:12px"><div class="row sp"><b>${q(d.n)}</b><button class=x data-a=dd data-id=${d.id}>Ta bort dag</button></div>${d.x.map((x,i)=>`<div class="row sp"><span>${N(x)}</span><button class=x data-a=de data-id=${d.id} data-i=${i}>✕</button></div>`).join('')}${sel('s'+d.id)}<button class=g style="width:100%;margin-top:8px" data-a=ae data-id=${d.id}>+ Lägg till övning</button></div>`).join('')}<button style="width:100%;margin-top:12px" data-a=nd>+ Ny träningsdag</button>`};
+const exs=()=>`<h1>Övningar</h1><div>${['Alla',...G].map(g=>`<span class="chip${ui.grp==g?' on':''}" data-a=g data-k=${g}>${g}</span>`).join('')}</div>${all().filter(e=>ui.grp=='Alla'||e.g==ui.grp).map(e=>`<div class=card data-a=ex data-id=${e.id}><div class="row sp"><b>${q(e.n)}</b><span class=sm>${IC[e.g]||''} ${e.g}</span></div><div class=sm>${q(e.m)}</div>${ui.open==e.id?`<ol>${e.s.map(s=>`<li>${q(s)}</li>`).join('')}</ol>${e.id[0]=='c'?`<button class=x data-a=dx data-id=${e.id}>Ta bort övning</button>`:''}`:''}</div>`).join('')}<details class=card><summary><b>+ Egen övning</b></summary><input id=cn placeholder="Namn" style="margin:8px 0"><select id=cg style=width:100%>${G.map(g=>`<option>${g}</option>`).join('')}</select><input id=cm placeholder="Muskler (t.ex. Bröst, triceps)" style="margin:8px 0"><textarea id=cs rows=3 style=width:100% placeholder="Instruktioner (ett steg per rad)"></textarea><button style="width:100%;margin-top:8px" data-a=addx>Spara övning</button></details>`;
+const hist=()=>{const c=ui.cal,y=c.getFullYear(),m=c.getMonth(),f=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate(),ds=new Set(db.l.map(l=>dk(l.date)));let g='';for(let i=0;i<f;i++)g+='<div></div>';for(let d=1;d<=n;d++){const k=y+'-'+z(m+1)+'-'+z(d);g+=`<div class="${ds.has(k)?'w':'d'}${ui.sel==k?' s':''}" data-a=sd data-k=${k}>${d}</div>`}
+const L=ui.sel?sorted().filter(l=>dk(l.date)==ui.sel):sorted().slice(0,10);
+return `<h1>Historik</h1><div class="row sp"><button class=g data-a=pm>‹</button><b style="text-transform:capitalize">${c.toLocaleDateString('sv-SE',{month:'long',year:'numeric'})}</b><button class=g data-a=nm>›</button></div><div class=cal style="margin:12px 0">${['M','T','O','T','F','L','S'].map(d=>`<span class=sm>${d}</span>`).join('')}${g}</div><h2>${ui.sel?'Pass '+ui.sel:'Senaste pass'}</h2>${L.map(l=>`<div class=card><div class="row sp" data-a=sd data-k=${dk(l.date)}><div><b>${q(l.name)}</b><div class=sm>${fd(l.date)} · ${Math.round(vol(l))} kg volym</div></div><button class=x data-a=dl data-id=${l.id}>Radera</button></div>${ui.sel?sets('L'+l.id,l):''}</div>`).join('')||'<div class="card sm">Inga pass.</div>'}`};
+const stats=()=>{const ids=[...new Set(db.l.flatMap(l=>l.e.map(e=>e.x)))];if(!ids.length)return '<h1>Statistik</h1><div class="card sm">Logga ditt första pass för att se statistik.</div>';
+const x=ids.includes(ui.st)?ui.st:ids[0],ls=[...db.l].sort((a,b)=>a.date-b.date).filter(l=>l.e.some(e=>e.x==x)),mx=ls.map(l=>Math.max(0,...l.e.filter(e=>e.x==x).flatMap(e=>e.s.map(s=>+s.kg||0)))),b=wk(Date.now()),ws=Array.from({length:8},(_,i)=>{const d=new Date(b);d.setDate(d.getDate()-7*(7-i));return +d}),wl=ws.map(s=>db.l.filter(l=>wk(l.date)==s));
+return `<h1>Statistik</h1><select id=sx style=width:100%>${ids.map(i=>`<option value=${i}${i==x?' selected':''}>${N(i)}</option>`).join('')}</select><div class=card style="margin-top:12px"><div class=sm>Personligt rekord</div><div class=big>${pb(x)} kg</div><div class=sm>Max vikt per pass</div>${chart(mx,ls.map(l=>sh(l.date)))}</div><div class=card><b>Volym per vecka (kg)</b>${chart(wl.map(a=>Math.round(a.reduce((s,l)=>s+vol(l),0))),ws.map(sh),1)}</div><div class=card><b>Pass per vecka</b>${chart(wl.map(a=>a.length),ws.map(sh),1)}</div>`};
+const render=()=>{$('main').innerHTML=({home,train,prog,exs,hist,stats})[v]();document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v==v))};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a],[data-v]');if(!t)return;const d=t.dataset,a=d.a;
+if(d.v){v=d.v;ui.prog=null;scrollTo(0,0)}
+else if(a=='start'){const y=db.p.find(p=>p.id==d.pi).d.find(y=>y.id==d.di);db.a={name:y.n,e:y.x.map(mk)}}
+else if(a=='empty')db.a={name:'Fritt pass',e:[]};
+else if(a=='rest'){rt=Date.now()+d.n*1e3;return}
+else if(a=='ok'){const s=W_(d.p).e[d.i].s[d.j];s.d=s.d?0:1;if(s.d)rt=Date.now()+9e4}
+else if(a=='as'){const w=W_(d.p).e[d.i],l=w.s[w.s.length-1]||{};w.s.push({kg:l.kg||'',r:l.r||'',d:0})}
+else if(a=='rs')W_(d.p).e[d.i].s.splice(d.j,1);
+else if(a=='rx')W_(d.p).e.splice(d.i,1);
+else if(a=='ax'){const x=$('#xs').value;if(!x)return;W_(d.p).e.push(mk(x))}
+else if(a=='fin'){const e=db.a.e.map(x=>({x:x.x,s:x.s.filter(s=>s.kg!==''||s.r!=='').map(s=>({kg:+s.kg||0,r:+s.r||0}))})).filter(x=>x.s.length);if(!e.length){alert('Fyll i minst ett set först.');return}db.l.push({id:uid(),date:Date.now(),name:db.a.name,e});db.a=null;v='hist';ui.sel=null}
+else if(a=='cancel'){if(!confirm('Avbryta passet? Ingenting sparas.'))return;db.a=null}
+else if(a=='dl'){if(!confirm('Radera passet?'))return;db.l=db.l.filter(l=>l.id!=d.id)}
+else if(a=='np'){const n=prompt('Programnamn?');if(!n)return;const p={id:uid(),n,d:[]};db.p.push(p);ui.prog=p.id}
+else if(a=='tp'){const p={id:uid(),n:d.k,d:Object.entries(TPL[d.k]).map(([n,s])=>({id:uid(),n,x:s.split('/').map(m=>LIB.find(e=>e.n==m).id)}))};db.p.push(p);ui.prog=p.id}
+else if(a=='op')ui.prog=d.id;
+else if(a=='bk')ui.prog=null;
+else if(a=='rp'){const P=cp(),n=prompt('Nytt namn?',P.n);if(!n)return;P.n=n}
+else if(a=='dp'){if(!confirm('Ta bort programmet?'))return;db.p=db.p.filter(p=>p.id!=ui.prog);ui.prog=null}
+else if(a=='nd'){const n=prompt('Namn på träningsdag? (t.ex. Push)');if(!n)return;cp().d.push({id:uid(),n,x:[]})}
+else if(a=='dd'){if(!confirm('Ta bort dagen?'))return;const P=cp();P.d=P.d.filter(y=>y.id!=d.id)}
+else if(a=='ae'){const x=$('#s'+d.id).value;if(!x)return;cp().d.find(y=>y.id==d.id).x.push(x)}
+else if(a=='de')cp().d.find(y=>y.id==d.id).x.splice(d.i,1);
+else if(a=='g')ui.grp=d.k;
+else if(a=='ex')ui.open=ui.open==d.id?null:d.id;
+else if(a=='dx'){if(!confirm('Ta bort övningen?'))return;db.x=db.x.filter(e=>e.id!=d.id)}
+else if(a=='addx'){const n=$('#cn').value.trim();if(!n){alert('Skriv ett namn.');return}db.x.push({id:'c'+uid(),n,g:$('#cg').value,m:$('#cm').value,s:$('#cs').value.split('\n').filter(Boolean)})}
+else if(a=='pm')ui.cal=new Date(ui.cal.getFullYear(),ui.cal.getMonth()-1,1);
+else if(a=='nm')ui.cal=new Date(ui.cal.getFullYear(),ui.cal.getMonth()+1,1);
+else if(a=='sd')ui.sel=d.k&&d.k!=ui.sel?d.k:null;
+else if(a=='exp'){const u=document.createElement('a');u.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));u.download='gymapp-'+dk(Date.now())+'.json';u.click();return}
+else if(a=='imp'){$('#fi').click();return}
+save();render()});
+document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+if(d.f){W_(d.p).e[d.i].s[d.j][d.f]=t.value;save()}
+else if(t.id=='sx'){ui.st=t.value;render()}
+else if(t.id=='fi'){const f=t.files[0];if(!f)return;f.text().then(x=>{try{const j=JSON.parse(x);if(!Array.isArray(j.l)||!Array.isArray(j.p))throw 0;if(!confirm('Ersätta all nuvarande data med säkerhetskopian?'))return;db={p:j.p,x:j.x||[],l:j.l,a:null};save();render()}catch(_){alert('Filen kunde inte läsas.')}})}});
+setInterval(()=>{const t=$('#tm');if(!t)return;const r=Math.ceil((rt-Date.now())/1e3);if(rt>0&&r<=0){rt=-1;navigator.vibrate&&navigator.vibrate([200,100,200])}t.textContent=rt>0?'Vila: '+Math.floor(r/60)+':'+z(r%60):rt<0?'Vila klar – kör! 💥':'Vila: –'},500);
+render();
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js');
+</script></body></html>

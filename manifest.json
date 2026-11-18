@@ -1,0 +1,1 @@
+{"name":"Min Gymapp","short_name":"Gymapp","start_url":"./","scope":"./","display":"standalone","orientation":"portrait","background_color":"#0b0b0c","theme_color":"#0b0b0c","lang":"sv","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},{"src":"icon-180.png","sizes":"180x180","type":"image/png"}]}
